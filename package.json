@@ -1,0 +1,15 @@
+{
+  "name": "brightsign_rss",
+  "version": "1.0.0",
+  "description": "MRSS feed generator for Brightsign players",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "debug": "node index.js"
+  },
+  "author": "Kevan Atkins",
+  "license": "ISC",
+  "dependencies": {
+    "rss": "^1.2.2"
+  }
+}
