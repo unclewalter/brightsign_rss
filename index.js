@@ -12,7 +12,6 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 const server_host = process.env.HOSTNAME || getIPAddress();
 
-
 app.use(express.static('public'));
 app.use('/media', express.static('../../share/media'))
 
@@ -39,7 +38,7 @@ function getIPAddress() {
 
 const feed_id = 'scr3';
 
-const feed_base_url = 'http://' + server_host + ':'+ PORT +'/';
+const feed_base_url = 'http://' + server_host + ':' + PORT + '/';
 
 function getChecksum(path) {
     return new Promise(function (resolve, reject) {
@@ -103,7 +102,8 @@ function createRSSFeed() {
 
             value.forEach((item) => {
                 console.log('item: ', item);
-                item_url = feed_base_url + item.path.replace('./', '')
+                item_url = feed_base_url + item.path.replace('./', '');
+                const stats = fs.statSync(item.path);
                 feed.item({
                     title: item.path,
                     guid: item.hash,
@@ -116,7 +116,7 @@ function createRSSFeed() {
                             'media:content': {
                                 _attr: {
                                     url: item_url.replace('/usr/share/', ''),
-                                    fileSize: 0,
+                                    fileSize: stats.size,
                                     type: 'video/mp4',
                                     medium: 'video'
                                 }
