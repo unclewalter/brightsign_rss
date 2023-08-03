@@ -1,6 +1,4 @@
 version: '3.8'
-volumes:
-  media:
 services:
   appcontainer: 
     build: 
@@ -11,5 +9,5 @@ services:
     ports: 
       - 8080:8080
     environment:
-    - HOSTNAME=localhost
+    - HOSTNAME=10.0.3.241
     
