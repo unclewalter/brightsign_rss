@@ -140,8 +140,8 @@ function createRSSFeed() {
 
 createRSSFeed();
 
-fs.watch('media/', (eventType, filename) => {
-    console.log(eventType);
+fs.watch(directory, (eventType, filename) => {
+    console.log("Directory watch event:", eventType);
     createRSSFeed();
     // could be either 'rename' or 'change'. new file event and delete
     // also generally emit 'rename'
