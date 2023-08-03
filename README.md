@@ -19,3 +19,5 @@ From here you can either deploy to a container hosting service like Amazon ECS, 
 
 ## TODO
 
+- Break the `/media` directory into separate feeds for each screen to consume. 
+- Code clean up

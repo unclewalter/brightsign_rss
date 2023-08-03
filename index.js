@@ -9,7 +9,7 @@ const crypto = require('crypto');
 const PORT = process.env.PORT || 8080;
 const server_host = process.env.HOSTNAME || getIPAddress();
 
-const media_directory = '/usr/share/media/';
+const root_media_directory = '/usr/share/media/';
 
 // ======= Utilities =======
 
@@ -32,13 +32,13 @@ function getChecksum(path) {
     return new Promise(function (resolve, reject) {
         const hash = crypto.createHash('md5');
         const input = fs.createReadStream(path);
-        
+
         input.on('error', reject);
-        
+
         input.on('data', function (chunk) {
             hash.update(chunk);
         });
-        
+
         input.on('close', function () {
             resolve({
                 path: path,
@@ -51,7 +51,9 @@ function getChecksum(path) {
 // ======= Feed generator =======
 
 function createRSSFeed(feed_id) {
-    
+
+    const media_directory = root_media_directory + feed_id + '/';
+
     fs.readdir(media_directory, (err, files) => {
         let promise_map = files.map((file) => {
             let fileDetails = fs.lstatSync(path.resolve(media_directory, file));
@@ -64,10 +66,10 @@ function createRSSFeed(feed_id) {
                 return getChecksum(item_url);
             }
         });
-        
+
         Promise.all(promise_map).then((value) => {
             const feed_base_url = 'http://' + server_host + ':' + PORT + '/';
-            
+
             let feed = new RSS({
                 title: 'NTH Screen 3 MRSS',
                 description: 'MRSS feed for Brightsign player',
@@ -80,29 +82,30 @@ function createRSSFeed(feed_id) {
             });
 
             value.forEach((item) => {
-                console.log('item: ', item);
-                item_url = feed_base_url + item.path.replace('/usr/share/', '');
-                const stats = fs.statSync(item.path);
-                feed.item({
-                    title: path.basename(item.path),
-                    guid: item.hash,
-                    description: '',
-                    // TODO: fix path logic because this is jank
-                    url: item_url,
-                    categories: ['video'],
-                    custom_elements: [
-                        {
-                            'media:content': {
-                                _attr: {
-                                    url: item_url,
-                                    fileSize: stats.size,
-                                    type: 'video/mp4',
-                                    medium: 'video'
+                if (item) {
+                    console.log('item: ', item);
+                    item_url = feed_base_url + item.path.replace('/usr/share/', '');
+                    const stats = fs.statSync(item.path);
+                    feed.item({
+                        title: path.basename(item.path),
+                        guid: item.hash,
+                        description: '',
+                        url: item_url,
+                        categories: ['video'],
+                        custom_elements: [
+                            {
+                                'media:content': {
+                                    _attr: {
+                                        url: item_url,
+                                        fileSize: stats.size,
+                                        type: 'video/mp4',
+                                        medium: 'video'
+                                    }
                                 }
                             }
-                        }
-                    ]
-                });
+                        ]
+                    });
+                }
             });
 
             fs.writeFile('public/' + feed_id + '_feed.xml', feed.xml(), function (err) {
@@ -117,28 +120,39 @@ function createRSSFeed(feed_id) {
 
 }
 
-createRSSFeed('scr3');
-
 // ======= Watch /media folder =======
 
-fs.watch(media_directory, (eventType, filename) => {
-    console.log("Directory watch event:", eventType);
-    createRSSFeed('scr3');
-    // could be either 'rename' or 'change'. new file event and delete
-    // also generally emit 'rename'
-    console.log(filename);
+function refreshRSSFeeds() {
+    fs.readdir(root_media_directory, (err, files) => {
+        files.forEach((file) => {
+            let fileDetails = fs.lstatSync(path.resolve(root_media_directory, file));
+            if (fileDetails.isDirectory()) {
+                console.log('Directory: ' + file);
+                createRSSFeed(file.toString());
+            }
+        })
+    });
+}
+
+refreshRSSFeeds();
+
+
+fs.watch(root_media_directory, { recursive: true }, (eventType, filename) => {
+    console.log('Watch event:', eventType, 'File:', filename);
+    refreshRSSFeeds();
 });
 
-// ======= Static web server =======
 
-const express = require('express');
-const app = express();
+    // ======= Static web server =======
 
-app.use(express.static('public'));
-app.use('/media', express.static('../../share/media'))
+    const express = require('express');
+    const app = express();
 
-app.get('/', (req, res) => {
-    res.send('Hello World!');
-});
+    app.use(express.static('public'));
+    app.use('/media', express.static('../../share/media'));
 
-app.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
+    app.get('/', (req, res) => {
+        res.send('Hello World!');
+    });
+
+    app.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
