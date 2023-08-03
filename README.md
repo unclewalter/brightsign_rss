@@ -1,6 +1,6 @@
 # Brightsign MRSS generator
 
-This is a simple app designed to take the contents of a folder and generate a Media RSS feed for the content with the correct custom RSS elements for the Brightsign player to consume.
+This is a simple app designed to take the contents of a folder and generate a Media RSS feed for the content with the correct custom RSS elements for the Brightsign player to consume. 
 
 ## Operation
 
@@ -16,3 +16,6 @@ At this point. It currently supports video assets already in the correct format.
 Edit `HOSTNAME` and `PORT` environment variables in the docker-compose.yml to match your the hostname of your Docker container.
 
 From here you can either deploy to a container hosting service like Amazon ECS, Azure ACI or run locally by invoking `docker compose up --build` on your local machine, provided you have Docker and Docker Compose installed.
+
+## TODO
+
