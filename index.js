@@ -23,7 +23,7 @@ const local_ip_address = getIPAddress();
 
 const feed_id = 'scr3';
 
-const feed_base_url = 'http://' + local_ip_address + '/';
+const feed_base_url = 'http://' + local_ip_address + ':3000/';
 
 function getChecksum(path) {
     return new Promise(function (resolve, reject) {
@@ -51,7 +51,7 @@ let feed = new RSS({
     title: 'NTH Screen 3 MRSS',
     description: 'MRSS feed for Brightsign player',
     feed_url: feed_base_url + feed_id + '_feed.xml',
-    ttl: '5',
+    ttl: '1',
     custom_namespaces: {
         'media': 'http://search.yahoo.com/mrss/'
     }
@@ -80,6 +80,7 @@ function createRSSFeed() {
                 title: 'NTH Screen 3 MRSS',
                 description: 'MRSS feed for Brightsign player',
                 feed_url: feed_base_url + feed_id + '_feed.xml',
+                site_url: feed_base_url,
                 ttl: '5',
                 custom_namespaces: {
                     'media': 'http://search.yahoo.com/mrss/'
@@ -88,20 +89,34 @@ function createRSSFeed() {
 
             value.forEach((item) => {
                 console.log('item: ', item);
+                item_url = feed_base_url + item.path.replace('./', '')
                 feed.item({
                     title: item.path,
                     guid: item.hash,
                     description: '',
-                    url: item.path
+                    url: item_url,
+                    categories: ['video'],
+                    custom_elements: [
+                        {
+                            'media:content': {
+                                _attr: {
+                                    url: item_url,
+                                    fileSize: 0,
+                                    type: 'video/mp4',
+                                    medium: 'video'
+                                }
+                            }
+                        }
+                    ]
                 });
             });
 
-            fs.writeFile(feed_id + '_feed.xml', feed.xml(), function(err) {
-                if(err) {
+            fs.writeFile(feed_id + '_feed.xml', feed.xml(), function (err) {
+                if (err) {
                     return console.log(err);
                 }
                 console.log("The file was saved!");
-            }); 
+            });
         })
     });
 
