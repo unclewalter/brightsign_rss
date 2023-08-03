@@ -10,4 +10,5 @@ services:
       - 8080:8080
     environment:
     - HOSTNAME=10.0.3.241
+    - PORT=8080
     
