@@ -4,15 +4,17 @@ const path = require('path');
 const RSS = require('rss');
 const crypto = require('crypto');
 
-const directory = '/usr/share/media';
+const directory = '/usr/share/media/';
 
 const express = require('express');
 const app = express();
-const PORT = 8080;
+
+const PORT = process.env.PORT || 8080;
+const server_host = process.env.HOSTNAME || getIPAddress();
 
 
 app.use(express.static('public'));
-app.use('/media', express.static('/usr/share/media'))
+app.use('/media', express.static('../../share/media'))
 
 app.get('/', (req, res) => {
     res.send('Hello World!');
@@ -34,11 +36,10 @@ function getIPAddress() {
     return '0.0.0.0';
 }
 
-const local_ip_address = getIPAddress();
 
 const feed_id = 'scr3';
 
-const feed_base_url = 'http://' + local_ip_address + ':3000/';
+const feed_base_url = 'http://' + server_host + ':'+ PORT +'/';
 
 function getChecksum(path) {
     return new Promise(function (resolve, reject) {
@@ -107,13 +108,14 @@ function createRSSFeed() {
                     title: item.path,
                     guid: item.hash,
                     description: '',
-                    url: item_url,
+                    // TODO: fix path logic because this is jank
+                    url: item_url.replace('/usr/share/', ''),
                     categories: ['video'],
                     custom_elements: [
                         {
                             'media:content': {
                                 _attr: {
-                                    url: item_url,
+                                    url: item_url.replace('/usr/share/', ''),
                                     fileSize: 0,
                                     type: 'video/mp4',
                                     medium: 'video'
