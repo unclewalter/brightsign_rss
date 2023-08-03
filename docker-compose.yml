@@ -1,0 +1,13 @@
+version: '3.8'
+volumes:
+  media:
+services:
+  appcontainer: 
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    volumes: 
+      - media:/usr/share/media
+    ports: 
+      - 8080:8080
+    

@@ -4,7 +4,22 @@ const path = require('path');
 const RSS = require('rss');
 const crypto = require('crypto');
 
-const directory = './media/';
+const directory = '/usr/share/media';
+
+const express = require('express');
+const app = express();
+const PORT = 8080;
+
+
+app.use(express.static('public'));
+app.use('/media', express.static('/usr/share/media'))
+
+app.get('/', (req, res) => {
+    res.send('Hello World!');
+});
+
+app.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
+
 function getIPAddress() {
     var interfaces = require('os').networkInterfaces();
     for (var devName in interfaces) {
@@ -27,8 +42,6 @@ const feed_base_url = 'http://' + local_ip_address + ':3000/';
 
 function getChecksum(path) {
     return new Promise(function (resolve, reject) {
-        // crypto.createHash('sha1');
-        // crypto.createHash('sha256');
         const hash = crypto.createHash('md5');
         const input = fs.createReadStream(path);
 
@@ -111,7 +124,7 @@ function createRSSFeed() {
                 });
             });
 
-            fs.writeFile(feed_id + '_feed.xml', feed.xml(), function (err) {
+            fs.writeFile('public/' + feed_id + '_feed.xml', feed.xml(), function (err) {
                 if (err) {
                     return console.log(err);
                 }
