@@ -1,13 +1,15 @@
+// ======= Globals =======
+
 const fs = require('fs');
 const path = require('path');
 
 const RSS = require('rss');
 const crypto = require('crypto');
 
-const media_directory = '/usr/share/media/';
-
 const PORT = process.env.PORT || 8080;
 const server_host = process.env.HOSTNAME || getIPAddress();
+
+const media_directory = '/usr/share/media/';
 
 // ======= Utilities =======
 
@@ -79,20 +81,20 @@ function createRSSFeed(feed_id) {
 
             value.forEach((item) => {
                 console.log('item: ', item);
-                item_url = feed_base_url + item.path.replace('./', '');
+                item_url = feed_base_url + item.path.replace('/usr/share/', '');
                 const stats = fs.statSync(item.path);
                 feed.item({
-                    title: item.path,
+                    title: path.basename(item.path),
                     guid: item.hash,
                     description: '',
                     // TODO: fix path logic because this is jank
-                    url: item_url.replace('/usr/share/', ''),
+                    url: item_url,
                     categories: ['video'],
                     custom_elements: [
                         {
                             'media:content': {
                                 _attr: {
-                                    url: item_url.replace('/usr/share/', ''),
+                                    url: item_url,
                                     fileSize: stats.size,
                                     type: 'video/mp4',
                                     medium: 'video'
