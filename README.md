@@ -19,5 +19,7 @@ From here you can either deploy to a container hosting service like Amazon ECS, 
 
 ## TODO
 
-- Break the `/media` directory into separate feeds for each screen to consume. 
-- Code clean up
+- Code clean up. Maybe break up some `createRSSFeed()` into smaller functions to make it more composable
+- Add support for different media types
+- Possibly add ffmpeg integration to transcode media for target
+- Possible add imagemagick integration to resize oversized images

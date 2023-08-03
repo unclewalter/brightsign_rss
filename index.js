@@ -142,17 +142,16 @@ fs.watch(root_media_directory, { recursive: true }, (eventType, filename) => {
     refreshRSSFeeds();
 });
 
+// ======= Static web server =======
 
-    // ======= Static web server =======
+const express = require('express');
+const app = express();
 
-    const express = require('express');
-    const app = express();
+app.use(express.static('public'));
+app.use('/media', express.static('../../share/media'));
 
-    app.use(express.static('public'));
-    app.use('/media', express.static('../../share/media'));
+app.get('/', (req, res) => {
+    res.send('Hello World!');
+});
 
-    app.get('/', (req, res) => {
-        res.send('Hello World!');
-    });
-
-    app.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
+app.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
