@@ -75,7 +75,7 @@ function createRSSFeed(feed_id) {
                 description: 'MRSS feed for Brightsign player',
                 feed_url: feed_base_url + feed_id + '_feed.xml',
                 site_url: feed_base_url,
-                ttl: '5',
+                ttl: '1',
                 custom_namespaces: {
                     'media': 'http://search.yahoo.com/mrss/'
                 }
@@ -146,6 +146,15 @@ fs.watch(root_media_directory, { recursive: true }, (eventType, filename) => {
 
 const express = require('express');
 const app = express();
+app.set('trust proxy', true)
+
+const logger = function (request, response, next) {
+    const date = new Date();
+    console.log(date.toISOString(), "- Served:", request.path);
+    next();
+}
+
+app.use(logger); // for all routes.
 
 app.use(express.static('public'));
 app.use('/media', express.static('../../share/media'));
