@@ -16,12 +16,12 @@ services:
     image: hurlenko/filebrowser
     user: "${UID}:${GID}"
     ports:
-      - 8008:8080
+      - 80:8080
     volumes:
       - ./media:/data
       - ./fb_config:/config
     environment:
-      - FB_BASEURL=/filebrowser
+      - FB_BASEURL=/
       - FB_NOAUTH=noauth
     restart: always
     
