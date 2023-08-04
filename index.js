@@ -84,7 +84,7 @@ function createRSSFeed(feed_id) {
             value.forEach((item) => {
                 if (item && path.basename(item.path) != '.DS_Store') {
                     console.log('item: ', item);
-                    item_url = feed_base_url + item.path.replace('/usr/share/', '');
+                    item_url = encodeURI(feed_base_url + item.path.replace('/usr/share/', ''));
                     const stats = fs.statSync(item.path);
                     feed.item({
                         title: path.basename(item.path),
