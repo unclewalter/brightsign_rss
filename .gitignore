@@ -133,3 +133,4 @@ dist
 
 media/*
 *.xml
+fb_config/
