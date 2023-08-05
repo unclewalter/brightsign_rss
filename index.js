@@ -12,6 +12,23 @@ const server_host = process.env.HOSTNAME || getIPAddress();
 
 const root_media_directory = '/usr/share/media/';
 
+const accepted_mime_types = [
+    "image/png",
+    "image/jpg",
+    "image/bmp",
+    "video/mp4",
+    "video/x-msvideo",
+    "video/h264",
+    "video/mp2t",
+    "video/mpeg",
+    "video/webm",
+    "video/x-matroska",
+    "video/quicktime",
+    "video/x-motion-jpeg"
+]
+
+
+
 // ======= Utilities =======
 
 function getIPAddress() {
@@ -83,11 +100,11 @@ function createRSSFeed(feed_id) {
             });
 
             value.forEach((item) => {
-                if (item && path.basename(item.path) != '.DS_Store') {
+                const stats = fs.statSync(item.path);
+                const mime_type = mime.getType(item.path);
+                if (item && accepted_mime_types.includes(mime_type)) {
                     console.log('item: ', item);
                     item_url = encodeURI(feed_base_url + item.path.replace('/usr/share/', ''));
-                    const stats = fs.statSync(item.path);
-                    const mime_type = mime.getType(item.path);
                     feed.item({
                         title: path.basename(item.path),
                         guid: item.hash,
