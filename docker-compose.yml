@@ -22,6 +22,5 @@ services:
       - ./fb_config:/config
     environment:
       - FB_BASEURL=/
-      - FB_NOAUTH=noauth
     restart: always
     

@@ -15,6 +15,8 @@ At this point. It currently supports video assets already in the correct format.
 
 Edit `HOSTNAME` and `PORT` environment variables in the docker-compose.yml to match your the hostname of your Docker container.
 
+You will also need to provision storage volumes for `brightsign_rss` and `filebrowser` containers and configure them in `docker-compose.yml`
+
 From here you can either deploy to a container hosting service like Amazon ECS, Azure ACI or run locally by invoking `docker compose up --build` on your local machine, provided you have Docker and Docker Compose installed.
 
 ## TODO
