@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const mime = require('mime');
 
 const RSS = require('rss');
 const crypto = require('crypto');
@@ -86,6 +87,7 @@ function createRSSFeed(feed_id) {
                     console.log('item: ', item);
                     item_url = encodeURI(feed_base_url + item.path.replace('/usr/share/', ''));
                     const stats = fs.statSync(item.path);
+                    const mime_type = mime.getType(item.path);
                     feed.item({
                         title: path.basename(item.path),
                         guid: item.hash,
@@ -98,8 +100,8 @@ function createRSSFeed(feed_id) {
                                     _attr: {
                                         url: item_url,
                                         fileSize: stats.size,
-                                        type: 'video/mp4',
-                                        medium: 'video'
+                                        type: mime_type,
+                                        medium: mime_type.split("/")[0]
                                     }
                                 }
                             }

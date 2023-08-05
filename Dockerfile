@@ -4,6 +4,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 RUN npm install
+
 # For production
 # RUN npm ci --omit=dev
 
