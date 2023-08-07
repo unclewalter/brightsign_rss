@@ -24,3 +24,4 @@ From here you can either deploy to a container hosting service like Amazon ECS, 
 - Code clean up. Maybe break up some `createRSSFeed()` into smaller functions to make it more composable
 - Possibly add ffmpeg integration to transcode media for target
 - Possible add imagemagick integration to resize oversized images
+- Add cleanup function for orphan feeds

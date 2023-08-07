@@ -90,6 +90,8 @@ function createRSSFeed(creator_id, screen_id) {
         Promise.all(promise_map).then((value) => {
             const feed_base_url = `http://${server_host}:${PORT}/`;
 
+            media_list = [];
+
             let feed = new RSS({
                 title: 'NTH Screen 3 MRSS',
                 description: 'MRSS feed for Brightsign player',
@@ -107,12 +109,13 @@ function createRSSFeed(creator_id, screen_id) {
                 if (item && accepted_mime_types.includes(mime_type)) {
                     // console.log('item: ', item);
                     item_url = encodeURI(feed_base_url + item.path.replace('/usr/share/', ''));
+                    media_list.push(path.basename(item.path));
                     feed.item({
                         title: path.basename(item.path),
                         guid: item.hash,
                         description: '',
                         url: item_url,
-                        categories: ['video'],
+                        categories: [mime_type.split("/")[0]],
                         custom_elements: [
                             {
                                 'media:content': {
@@ -128,6 +131,30 @@ function createRSSFeed(creator_id, screen_id) {
                     });
                 }
             });
+
+            if (!media_list.length) {
+                const nofeed_stats = fs.statSync('./public/img/no_feed.png')
+                const no_feed_url = encodeURI(feed_base_url + 'img/no_feed.png')
+                feed.item({
+                    title: 'no_feed.png',
+                    guid: 'nofeed',
+                    description: '',
+                    url: no_feed_url,
+                    categories: ['image'],
+                    custom_elements: [
+                        {
+                            'media:content': {
+                                _attr: {
+                                    url: no_feed_url,
+                                    fileSize: nofeed_stats.size,
+                                    type: 'image/png',
+                                    medium: 'image'
+                                }
+                            }
+                        }
+                    ]
+                });
+            }
 
             fs.writeFile(`public/${creator_id}_${screen_id}_feed.xml`, feed.xml(), function (err) {
                 if (err) {
