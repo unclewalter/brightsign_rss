@@ -116,18 +116,16 @@ function createRSSFeed(creator_id, screen_id) {
                         description: '',
                         url: item_url,
                         categories: [mime_type.split("/")[0]],
-                        custom_elements: [
-                            {
-                                'media:content': {
-                                    _attr: {
-                                        url: item_url,
-                                        fileSize: stats.size,
-                                        type: mime_type,
-                                        medium: mime_type.split("/")[0]
-                                    }
+                        custom_elements: [{
+                            'media:content': {
+                                _attr: {
+                                    url: item_url,
+                                    fileSize: stats.size,
+                                    type: mime_type,
+                                    medium: mime_type.split("/")[0]
                                 }
                             }
-                        ]
+                        }]
                     });
                 }
             });
@@ -141,18 +139,16 @@ function createRSSFeed(creator_id, screen_id) {
                     description: '',
                     url: no_feed_url,
                     categories: ['image'],
-                    custom_elements: [
-                        {
-                            'media:content': {
-                                _attr: {
-                                    url: no_feed_url,
-                                    fileSize: nofeed_stats.size,
-                                    type: 'image/png',
-                                    medium: 'image'
-                                }
+                    custom_elements: [{
+                        'media:content': {
+                            _attr: {
+                                url: no_feed_url,
+                                fileSize: nofeed_stats.size,
+                                type: 'image/png',
+                                medium: 'image'
                             }
                         }
-                    ]
+                    }]
                 });
             }
 
@@ -218,9 +214,5 @@ app.use(logger); // for all routes.
 
 app.use(express.static('public'));
 app.use('/media', express.static('../../share/media'));
-
-app.get('/', (req, res) => {
-    res.send('Hello World!');
-});
 
 app.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
