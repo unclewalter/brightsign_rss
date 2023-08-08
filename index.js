@@ -77,12 +77,8 @@ function createRSSFeed(creator_id, screen_id) {
     fs.readdir(media_directory, (err, files) => {
         let promise_map = files.map((file) => {
             let fileDetails = fs.lstatSync(path.resolve(media_directory, file));
-            // check if the file is directory 
-            if (fileDetails.isDirectory()) {
-                // console.log('Directory: ' + file);
-            } else {
+            if (!fileDetails.isDirectory()) {
                 item_url = media_directory + file
-                // console.log('File: ' + item_url);
                 return getChecksum(item_url);
             }
         });
@@ -107,7 +103,6 @@ function createRSSFeed(creator_id, screen_id) {
                 const stats = fs.statSync(item.path);
                 const mime_type = mime.getType(item.path);
                 if (item && accepted_mime_types.includes(mime_type)) {
-                    // console.log('item: ', item);
                     item_url = encodeURI(feed_base_url + item.path.replace('/usr/share/', ''));
                     media_list.push(path.basename(item.path));
                     feed.item({
@@ -156,7 +151,7 @@ function createRSSFeed(creator_id, screen_id) {
                 if (err) {
                     return console.err(err);
                 }
-                console.log("The file was saved!");
+                console.log(`public/${creator_id}_${screen_id}_feed.xml was saved`);
             });
         })
     });
