@@ -190,7 +190,7 @@ refreshRSSFeeds();
 fs.watch(root_media_directory, { recursive: true }, (eventType, filename) => {
     console.log('Watch event:', eventType, 'File:', filename);
     refreshRSSFeeds();
-});
+}); 
 
 // ======= Static web server =======
 
