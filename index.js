@@ -27,8 +27,6 @@ const accepted_mime_types = [
     "video/x-motion-jpeg"
 ]
 
-
-
 // ======= Utilities =======
 
 function getIPAddress() {
@@ -195,7 +193,6 @@ fs.watch(root_media_directory, { recursive: true }, (eventType, filename) => {
 // ======= Static web server =======
 
 const express = require('express');
-const { ifError } = require('assert');
 const app = express();
 app.set('trust proxy', true)
 

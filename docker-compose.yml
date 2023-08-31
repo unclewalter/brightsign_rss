@@ -9,7 +9,7 @@ services:
     ports: 
       - 8080:8080
     environment:
-    - HOSTNAME=10.224.10.59
+    - HOSTNAME=10.224.10.54
     - PORT=8080
     restart: always
   filebrowser:
