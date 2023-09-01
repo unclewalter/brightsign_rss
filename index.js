@@ -33,8 +33,6 @@ const accepted_mime_types = [
 function createRSSFeed(media_directory) {
     media_list = [];
 
-    console.log('media_directory: ', media_directory);
-
     fs.readdir(media_directory, (err, files) => {
         let promise_map = files.map((file) => {
             let fileDetails = fs.lstatSync(path.resolve(media_directory, file));
