@@ -1,9 +1,9 @@
 version: '3.8'
 services:
   brightsign_rss: 
-    # image: fractalartinteractive/brightsign_rss
-    build: 
-      dockerfile: Dockerfile
+    image: fractalartinteractive/brightsign_rss
+    # build: 
+    #   dockerfile: Dockerfile
     volumes: 
       - ./media:/usr/share/media
     ports: 
