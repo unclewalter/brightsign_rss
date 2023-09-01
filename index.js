@@ -9,7 +9,7 @@ const RSS = require('rss');
 const crypto = require('crypto');
 
 const PORT = process.env.PORT || 8080;
-const server_host = process.env.HOSTNAME || getIPAddress();
+const server_host = process.env.HOSTNAME || get_IP_address();
 
 const root_media_directory = '/usr/share/media';
 
@@ -30,23 +30,22 @@ const accepted_mime_types = [
 
 // ======= Feed generator =======
 
-function createRSSFeed(media_directory) {
-    let media_list = [];
-    let promise_map;
-
+function create_RSS_feed(media_directory) {
     fs.readdir(media_directory, (err, files) => {
-        promise_map = files.map((file) => {
+        let promise_map = files.map((file) => {
             let fileDetails = fs.lstatSync(path.resolve(media_directory, file));
             if (!fileDetails.isDirectory()) {
                 item_url = `${media_directory}/${file}`
-                return getChecksum(item_url);
+                return get_checksum(item_url);
             }
         });
 
         Promise.all(promise_map).then((value) => {
             const feed_base_url = `http://${server_host}:${PORT}/`;
 
-            feed_name = feedDirToName(media_directory);
+            feed_name = feed_dir_to_name(media_directory);
+
+            let feed_is_empty = true;
 
             let feed = new RSS({
                 title: `${feed_name} MRSS Feed`,
@@ -63,25 +62,23 @@ function createRSSFeed(media_directory) {
                 if (!item) {
                     return false;
                 }
-                item.size = fs.statSync(item.path).size;
                 item.mime_type = mime.getType(item.path);
 
                 if (!accepted_mime_types.includes(item.mime_type)) {
                     return false;
                 }
                 item.url = encodeURI(feed_base_url + item.path.replace('/usr/share/', ''));
-                media_list.push(path.basename(item.path));
-                feed.item(feedItem(item));
+                feed_is_empty = false;
+                feed.item(MRSS_item(item));
             });
 
-            if (!media_list.length) {
-                no_feed = {};
-                no_feed.size = fs.statSync('./public/img/no_feed.png').size;
-                no_feed.url = encodeURI(feed_base_url + 'img/no_feed.png');
-                no_feed.mime_type = 'image/png';
-                no_feed.path = './public/img/no_feed.png';
-                no_feed.hash = 'nofeed';
-                feed.item(feedItem(no_feed));
+            if (feed_is_empty) {
+                feed.item(MRSS_item({
+                    url: encodeURI(feed_base_url + 'img/no_feed.png'),
+                    mime_type: 'image/png',
+                    path: './public/img/no_feed.png',
+                    hash: 'nofeed'
+                }));
             }
 
             fs.writeFile(`public/${feed_name}_feed.xml`, feed.xml(), function (err) {
@@ -94,7 +91,8 @@ function createRSSFeed(media_directory) {
     });
 }
 
-function feedItem(item) {
+function MRSS_item(item) {
+    item.size = fs.statSync(item.path).size
     return {
         title: path.basename(item.path),
         guid: item.hash,
@@ -116,22 +114,22 @@ function feedItem(item) {
 
 // ======= Watch /media folder =======
 
-function refreshRSSFeeds() {
+function refresh_RSS_feeds() {
 
-    const feed_directories = getDirectoriesRecursive(root_media_directory);
+    const feed_directories = get_directories_recursive(root_media_directory);
     
     feed_directories.forEach(directory => {
-        createRSSFeed(directory);
+        create_RSS_feed(directory);
     });
     
     
 }
 
-refreshRSSFeeds();
+refresh_RSS_feeds();
 
 fs.watch(root_media_directory, { recursive: true }, (eventType, filename) => {
     console.log('Watch event:', eventType, 'File:', filename);
-    refreshRSSFeeds();
+    refresh_RSS_feeds();
 }); 
 
 // ======= Static web server =======
@@ -155,7 +153,7 @@ app.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
 
 // ======= Utilities =======
 
-function getDirectories(dirpath) {
+function get_directories(dirpath) {
     return fs
       .readdirSync(dirpath)
       .map(file => path.join(dirpath, file))
@@ -165,11 +163,11 @@ function getDirectories(dirpath) {
       );
   }
   
-  function getDirectoriesRecursive(dirpath) {
+  function get_directories_recursive(dirpath) {
     return [
       dirpath,
       ...flatten(
-        getDirectories(dirpath).map(getDirectoriesRecursive),
+        get_directories(dirpath).map(get_directories_recursive),
       ),
     ];
   }
@@ -178,7 +176,7 @@ function getDirectories(dirpath) {
     return arr.slice().flat();
   }
 
-  function getIPAddress() {
+  function get_IP_address() {
     var interfaces = require('os').networkInterfaces();
     for (var devName in interfaces) {
         var iface = interfaces[devName];
@@ -192,7 +190,7 @@ function getDirectories(dirpath) {
     return '0.0.0.0';
 }
 
-function getChecksum(path) {
+function get_checksum(path) {
     return new Promise(function (resolve, reject) {
         const hash = crypto.createHash('md5');
         const input = fs.createReadStream(path);
@@ -212,7 +210,7 @@ function getChecksum(path) {
     });
 }
 
-function feedDirToName(dir) {
+function feed_dir_to_name(dir) {
     const feed_dir = dir.replace(root_media_directory, '');
     return feed_dir.replace(/\//g, '_').replace('_', '');
 }
