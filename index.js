@@ -31,10 +31,11 @@ const accepted_mime_types = [
 // ======= Feed generator =======
 
 function createRSSFeed(media_directory) {
-    media_list = [];
+    let media_list = [];
+    let promise_map;
 
     fs.readdir(media_directory, (err, files) => {
-        let promise_map = files.map((file) => {
+        promise_map = files.map((file) => {
             let fileDetails = fs.lstatSync(path.resolve(media_directory, file));
             if (!fileDetails.isDirectory()) {
                 item_url = `${media_directory}/${file}`
@@ -45,12 +46,10 @@ function createRSSFeed(media_directory) {
         Promise.all(promise_map).then((value) => {
             const feed_base_url = `http://${server_host}:${PORT}/`;
 
-            const feed_dir = media_directory.replace(root_media_directory, '');
-
-            const feed_name = feed_dir.replace(/\//g, '_').replace('_', '');
+            feed_name = feedDirToName(media_directory);
 
             let feed = new RSS({
-                title: 'NTH Screen 3 MRSS',
+                title: `${feed_name} MRSS Feed`,
                 description: 'MRSS feed for Brightsign player',
                 feed_url: `${feed_base_url}${feed_name}_feed.xml`,
                 site_url: feed_base_url,
@@ -64,51 +63,25 @@ function createRSSFeed(media_directory) {
                 if (!item) {
                     return false;
                 }
-                const stats = fs.statSync(item.path);
-                const mime_type = mime.getType(item.path);
-                if (item && accepted_mime_types.includes(mime_type)) {
-                    item_url = encodeURI(feed_base_url + item.path.replace('/usr/share/', ''));
-                    media_list.push(path.basename(item.path));
-                    feed.item({
-                        title: path.basename(item.path),
-                        guid: item.hash,
-                        description: '',
-                        url: item_url,
-                        categories: [mime_type.split("/")[0]],
-                        custom_elements: [{
-                            'media:content': {
-                                _attr: {
-                                    url: item_url,
-                                    fileSize: stats.size,
-                                    type: mime_type,
-                                    medium: mime_type.split("/")[0]
-                                }
-                            }
-                        }]
-                    });
+                item.size = fs.statSync(item.path).size;
+                item.mime_type = mime.getType(item.path);
+
+                if (!accepted_mime_types.includes(item.mime_type)) {
+                    return false;
                 }
+                item.url = encodeURI(feed_base_url + item.path.replace('/usr/share/', ''));
+                media_list.push(path.basename(item.path));
+                feed.item(feedItem(item));
             });
 
             if (!media_list.length) {
-                const nofeed_stats = fs.statSync('./public/img/no_feed.png')
-                const no_feed_url = encodeURI(feed_base_url + 'img/no_feed.png')
-                feed.item({
-                    title: 'no_feed.png',
-                    guid: 'nofeed',
-                    description: '',
-                    url: no_feed_url,
-                    categories: ['image'],
-                    custom_elements: [{
-                        'media:content': {
-                            _attr: {
-                                url: no_feed_url,
-                                fileSize: nofeed_stats.size,
-                                type: 'image/png',
-                                medium: 'image'
-                            }
-                        }
-                    }]
-                });
+                no_feed = {};
+                no_feed.size = fs.statSync('./public/img/no_feed.png').size;
+                no_feed.url = encodeURI(feed_base_url + 'img/no_feed.png');
+                no_feed.mime_type = 'image/png';
+                no_feed.path = './public/img/no_feed.png';
+                no_feed.hash = 'nofeed';
+                feed.item(feedItem(no_feed));
             }
 
             fs.writeFile(`public/${feed_name}_feed.xml`, feed.xml(), function (err) {
@@ -121,15 +94,37 @@ function createRSSFeed(media_directory) {
     });
 }
 
+function feedItem(item) {
+    return {
+        title: path.basename(item.path),
+        guid: item.hash,
+        description: '',
+        url: item.url,
+        categories: [item.mime_type.split("/")[0]],
+        custom_elements: [{
+            'media:content': {
+                _attr: {
+                    url: item.url,
+                    fileSize: item.size,
+                    type: item.mime_type,
+                    medium: item.mime_type.split("/")[0]
+                }
+            }
+        }]
+    }
+}
+
 // ======= Watch /media folder =======
 
 function refreshRSSFeeds() {
 
     const feed_directories = getDirectoriesRecursive(root_media_directory);
-
+    
     feed_directories.forEach(directory => {
         createRSSFeed(directory);
     });
+    
+    
 }
 
 refreshRSSFeeds();
@@ -215,4 +210,9 @@ function getChecksum(path) {
             });
         });
     });
+}
+
+function feedDirToName(dir) {
+    const feed_dir = dir.replace(root_media_directory, '');
+    return feed_dir.replace(/\//g, '_').replace('_', '');
 }
