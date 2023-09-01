@@ -1,6 +1,8 @@
 // ======= Globals =======
 
 const fs = require('fs');
+const { readdir } = require('fs').promises;
+
 const path = require('path');
 const mime = require('mime');
 
@@ -10,7 +12,7 @@ const crypto = require('crypto');
 const PORT = process.env.PORT || 8080;
 const server_host = process.env.HOSTNAME || getIPAddress();
 
-const root_media_directory = '/usr/share/media/';
+const root_media_directory = '/usr/share/media';
 
 const accepted_mime_types = [
     "image/png",
@@ -66,9 +68,8 @@ function getChecksum(path) {
 
 // ======= Feed generator =======
 
-function createRSSFeed(creator_id, screen_id) {
-
-    const media_directory = `${root_media_directory}${creator_id}/${screen_id}/`;
+function createRSSFeed(media_directory) {
+    media_list = [];
 
     console.log('media_directory: ', media_directory);
 
@@ -76,7 +77,7 @@ function createRSSFeed(creator_id, screen_id) {
         let promise_map = files.map((file) => {
             let fileDetails = fs.lstatSync(path.resolve(media_directory, file));
             if (!fileDetails.isDirectory()) {
-                item_url = media_directory + file
+                item_url = `${media_directory}/${file}`
                 return getChecksum(item_url);
             }
         });
@@ -84,12 +85,14 @@ function createRSSFeed(creator_id, screen_id) {
         Promise.all(promise_map).then((value) => {
             const feed_base_url = `http://${server_host}:${PORT}/`;
 
-            media_list = [];
+            const feed_dir = media_directory.replace(root_media_directory, '');
+
+            const feed_name = feed_dir.replace(/\//g, '_').replace('_', '');
 
             let feed = new RSS({
                 title: 'NTH Screen 3 MRSS',
                 description: 'MRSS feed for Brightsign player',
-                feed_url: `${feed_base_url}${creator_id}_${screen_id}_feed.xml`,
+                feed_url: `${feed_base_url}${feed_name}_feed.xml`,
                 site_url: feed_base_url,
                 ttl: '1',
                 custom_namespaces: {
@@ -98,6 +101,9 @@ function createRSSFeed(creator_id, screen_id) {
             });
 
             value.forEach((item) => {
+                if (!item) {
+                    return false;
+                }
                 const stats = fs.statSync(item.path);
                 const mime_type = mime.getType(item.path);
                 if (item && accepted_mime_types.includes(mime_type)) {
@@ -145,11 +151,13 @@ function createRSSFeed(creator_id, screen_id) {
                 });
             }
 
-            fs.writeFile(`public/${creator_id}_${screen_id}_feed.xml`, feed.xml(), function (err) {
+
+
+            fs.writeFile(`public/${feed_name}_feed.xml`, feed.xml(), function (err) {
                 if (err) {
-                    return console.err(err);
+                    console.err(err);
                 }
-                console.log(`public/${creator_id}_${screen_id}_feed.xml was saved`);
+                console.log(`public/${feed_name}_feed.xml was saved`);
             });
         })
     });
@@ -160,30 +168,15 @@ function createRSSFeed(creator_id, screen_id) {
 // ======= Watch /media folder =======
 
 function refreshRSSFeeds() {
-    fs.readdir(root_media_directory, (err, root_dir_files) => {
-        if (err) {
-            console.error(err);
-        } else {
-            root_dir_files.forEach((root_dir_file) => {
-                let root_dir_file_details = fs.lstatSync(path.resolve(root_media_directory, root_dir_file));
-                if (root_dir_file_details.isDirectory()) {
-                    let creator_directory = `${root_media_directory}${root_dir_file}`;
-                    fs.readdir(creator_directory, (err, creator_dir_files) => {
-                        creator_dir_files.forEach((creator_dir_file) => {
-                            let creator_dir_file_details = fs.lstatSync(path.resolve(creator_directory, creator_dir_file));
-                            if (creator_dir_file_details.isDirectory()) {
-                                createRSSFeed(root_dir_file.toString(), creator_dir_file.toString());
-                            }
-                        });
-                    });
-                }
-            });
-        }
+
+    const feed_directories = getDirectoriesRecursive(root_media_directory);
+
+    feed_directories.forEach(directory => {
+        createRSSFeed(directory);
     });
 }
 
 refreshRSSFeeds();
-
 
 fs.watch(root_media_directory, { recursive: true }, (eventType, filename) => {
     console.log('Watch event:', eventType, 'File:', filename);
@@ -208,3 +201,28 @@ app.use(express.static('public'));
 app.use('/media', express.static('../../share/media'));
 
 app.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
+
+// ======= Utilities =======
+
+function getDirectories(dirpath) {
+    return fs
+      .readdirSync(dirpath)
+      .map(file => path.join(dirpath, file))
+      .filter(
+        pth =>
+          fs.statSync(pth).isDirectory(),
+      );
+  }
+  
+  function getDirectoriesRecursive(dirpath) {
+    return [
+      dirpath,
+      ...flatten(
+        getDirectories(dirpath).map(getDirectoriesRecursive),
+      ),
+    ];
+  }
+  
+  function flatten(arr) {
+    return arr.slice().flat();
+  }
