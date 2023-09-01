@@ -29,43 +29,6 @@ const accepted_mime_types = [
     "video/x-motion-jpeg"
 ]
 
-// ======= Utilities =======
-
-function getIPAddress() {
-    var interfaces = require('os').networkInterfaces();
-    for (var devName in interfaces) {
-        var iface = interfaces[devName];
-
-        for (var i = 0; i < iface.length; i++) {
-            var alias = iface[i];
-            if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal)
-                return alias.address;
-        }
-    }
-    return '0.0.0.0';
-}
-
-
-function getChecksum(path) {
-    return new Promise(function (resolve, reject) {
-        const hash = crypto.createHash('md5');
-        const input = fs.createReadStream(path);
-
-        input.on('error', reject);
-
-        input.on('data', function (chunk) {
-            hash.update(chunk);
-        });
-
-        input.on('close', function () {
-            resolve({
-                path: path,
-                hash: hash.digest('hex')
-            });
-        });
-    });
-}
-
 // ======= Feed generator =======
 
 function createRSSFeed(media_directory) {
@@ -151,8 +114,6 @@ function createRSSFeed(media_directory) {
                 });
             }
 
-
-
             fs.writeFile(`public/${feed_name}_feed.xml`, feed.xml(), function (err) {
                 if (err) {
                     console.err(err);
@@ -161,8 +122,6 @@ function createRSSFeed(media_directory) {
             });
         })
     });
-
-
 }
 
 // ======= Watch /media folder =======
@@ -226,3 +185,37 @@ function getDirectories(dirpath) {
   function flatten(arr) {
     return arr.slice().flat();
   }
+
+  function getIPAddress() {
+    var interfaces = require('os').networkInterfaces();
+    for (var devName in interfaces) {
+        var iface = interfaces[devName];
+
+        for (var i = 0; i < iface.length; i++) {
+            var alias = iface[i];
+            if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal)
+                return alias.address;
+        }
+    }
+    return '0.0.0.0';
+}
+
+function getChecksum(path) {
+    return new Promise(function (resolve, reject) {
+        const hash = crypto.createHash('md5');
+        const input = fs.createReadStream(path);
+
+        input.on('error', reject);
+
+        input.on('data', function (chunk) {
+            hash.update(chunk);
+        });
+
+        input.on('close', function () {
+            resolve({
+                path: path,
+                hash: hash.digest('hex')
+            });
+        });
+    });
+}
