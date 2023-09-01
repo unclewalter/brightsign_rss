@@ -23,8 +23,6 @@ You may decide to use a different file management method. You just need to sub o
 
 ## TODO
 
-- Clean up: 
-    - Maybe break up some of `createRSSFeed()` into smaller functions to make it more composable.
 - Add function to clear orphan feeds
 - Possibly add ffmpeg integration to transcode media for target
 - Possible add imagemagick integration to resize oversized images
