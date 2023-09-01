@@ -1,16 +1,17 @@
 version: '3.8'
 services:
   brightsign_rss: 
-    image: fractalartinteractive/brightsign_rss
-    # build: 
-    #   dockerfile: Dockerfile
+    # image: fractalartinteractive/brightsign_rss
+    build: 
+      dockerfile: Dockerfile
     volumes: 
       - ./media:/usr/share/media
     ports: 
       - 8080:8080
     environment:
-    - HOSTNAME=10.224.10.54
+    - HOSTNAME=10.224.10.60
     - PORT=8080
+    - TTL=1
     restart: always
   filebrowser:
     image: hurlenko/filebrowser

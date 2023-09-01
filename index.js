@@ -10,6 +10,7 @@ const crypto = require('crypto');
 
 const PORT = process.env.PORT || 8080;
 const server_host = process.env.HOSTNAME || get_IP_address();
+const TTL = process.env.TTL || 1;
 
 const root_media_directory = '/usr/share/media';
 
@@ -52,7 +53,7 @@ function create_RSS_feed(media_directory) {
                 description: 'MRSS feed for Brightsign player',
                 feed_url: `${feed_base_url}${feed_name}_feed.xml`,
                 site_url: feed_base_url,
-                ttl: '1',
+                ttl: TTL.toString(),
                 custom_namespaces: {
                     'media': 'http://search.yahoo.com/mrss/'
                 }
