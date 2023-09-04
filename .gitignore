@@ -132,5 +132,6 @@ dist
 # app specific
 
 media/*
+branding/*
 *.xml
 fb_config/
