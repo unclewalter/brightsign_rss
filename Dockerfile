@@ -1,15 +1,16 @@
-FROM node:20
+FROM node:20-slim as builder
 WORKDIR /usr/src/app
-
-COPY package*.json ./
-
-RUN npm install
-RUN npm install pm2@latest -g
-
-# For production
-# RUN npm ci --omit=dev
 
 COPY . .
 
+RUN npm install --production
+RUN npm install -g @vercel/ncc
+RUN ncc build index.js -o dist
+
+FROM node:20-slim
+WORKDIR /usr/src/app
+COPY --from=builder /usr/src/app/dist/index.js .
+COPY --from=builder /usr/src/app/public ./public
+
 EXPOSE 8080
-CMD [ "pm2-runtime", "index.js" ]
+CMD [ "node", "index.js" ]
