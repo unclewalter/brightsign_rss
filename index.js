@@ -118,12 +118,37 @@ function MRSS_item(item) {
 function refresh_RSS_feeds() {
 
     const feed_directories = get_directories_recursive(root_media_directory);
-    
+
     feed_directories.forEach(directory => {
         create_RSS_feed(directory);
     });
+
+    // Remove orphan feeds
     
+    const feed_list = feed_directories.map((value, index) => {
+        return `${feed_dir_to_name(value)}_feed.xml`;
+    });
     
+    fs.readdirSync('public').forEach(file => {
+        if (!file.endsWith('_feed.xml')) {
+            return false;
+        }
+        if (feed_list.includes(file)) {
+            return false;
+        } else {
+            const orphan_feed = path.resolve('public', file);
+            fs.stat(orphan_feed, function (err, stats) {
+                if (err) {
+                    return console.error(err);
+                }
+             
+                fs.unlink(orphan_feed,function(err){
+                     if(err) return console.log(err);
+                     console.log(`${file} feed deleted successfully`);
+                });  
+             });
+        }
+    });
 }
 
 refresh_RSS_feeds();
@@ -131,7 +156,7 @@ refresh_RSS_feeds();
 fs.watch(root_media_directory, { recursive: true }, (eventType, filename) => {
     console.log('Watch event:', eventType, 'File:', filename);
     refresh_RSS_feeds();
-}); 
+});
 
 // ======= Static web server =======
 
@@ -156,28 +181,28 @@ app.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
 
 function get_directories(dirpath) {
     return fs
-      .readdirSync(dirpath)
-      .map(file => path.join(dirpath, file))
-      .filter(
-        pth =>
-          fs.statSync(pth).isDirectory(),
-      );
-  }
-  
-  function get_directories_recursive(dirpath) {
-    return [
-      dirpath,
-      ...flatten(
-        get_directories(dirpath).map(get_directories_recursive),
-      ),
-    ];
-  }
-  
-  function flatten(arr) {
-    return arr.slice().flat();
-  }
+        .readdirSync(dirpath)
+        .map(file => path.join(dirpath, file))
+        .filter(
+            pth =>
+                fs.statSync(pth).isDirectory(),
+        );
+}
 
-  function get_IP_address() {
+function get_directories_recursive(dirpath) {
+    return [
+        dirpath,
+        ...flatten(
+            get_directories(dirpath).map(get_directories_recursive),
+        ),
+    ];
+}
+
+function flatten(arr) {
+    return arr.slice().flat();
+}
+
+function get_IP_address() {
     var interfaces = require('os').networkInterfaces();
     for (var devName in interfaces) {
         var iface = interfaces[devName];

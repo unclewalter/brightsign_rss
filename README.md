@@ -20,9 +20,3 @@ You will also need to provision storage volumes for `brightsign_rss` and `filebr
 From here you can either deploy to a container hosting service like Amazon ECS, Azure ACI or run locally by invoking `docker compose up --build` on your local machine, provided you have Docker and Docker Compose installed.
 
 You may decide to use a different file management method. You just need to sub out `filebrowser` in `docker-compose.yml` file for your app of choice. As long as what you replace it with presents the files in a Docker volume, this app should be able to consume it.
-
-## TODO
-
-- Add function to clear orphan feeds
-- Possibly add ffmpeg integration to transcode media for target
-- Possible add imagemagick integration to resize oversized images
